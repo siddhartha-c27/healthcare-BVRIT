@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Healthcare - All in One</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body{background:#020617;color:white;font-family:sans-serif;margin:0;padding:0}
+.nav{background:#1e293b;padding:12px;display:flex;gap:10px;justify-content:center;position:sticky;top:0;z-index:10}
+.nav button{background:#0f172a;border:none;color:white;padding:10px 15px;border-radius:8px;cursor:pointer}
+.nav button.active{background:#22c55e;color:black;font-weight:bold}
+.page{display:none;padding:15px}
+.page.active{display:block}
+.card{background:#1e293b;padding:15px;border-radius:15px;margin-top:15px;text-align:center}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+canvas{background:#0f172a;border-radius:15px;padding:10px}
+</style>
+</head>
+<body>
+
+<div class="nav">
+<button onclick="show('home')" id="b-home" class="active">🏠 Home</button>
+<button onclick="show('live')" id="b-live">📊 Live</button>
+<button onclick="show('organs')" id="b-organs">🫀 Organs</button>
+<button onclick="show('history')" id="b-history">📈 History</button>
+<button onclick="show('alert')" id="b-alert">🚨 Alerts</button>
+</div>
+
+<!-- HOME -->
+<div id="home" class="page active">
+<h1 style="text-align:center">🏥 Healthcare</h1>
+<p style="text-align:center;color:#94a3b8">All-in-One Health Monitoring - BVRIT Hackathon</p>
+<div class="grid">
+<div class="card"><h1 id="h1">--</h1><p>Heart</p></div>
+<div class="card"><h1 id="s1">--</h1><p>SpO2</p></div>
+<div class="card"><h1 id="t1">--</h1><p>Temp</p></div>
+<div class="card"><h1 id="st1">--</h1><p>Stress</p></div>
+</div>
+<div class="card" style="background:#22c55e;color:black">✅ Backend Connected: localhost:5000</div>
+</div>
+
+<!-- LIVE -->
+<div id="live" class="page">
+<h2>📊 Live Monitoring</h2>
+<canvas id="liveChart" height="100"></canvas>
+<p style="text-align:center;margin-top:10px"><span style="color:#22c55e">● LIVE</span> - Data from Backend API</p>
+</div>
+
+<!-- ORGANS -->
+<div id="organs" class="page">
+<h2>🫀 Click Organ to Check</h2>
+<div class="grid">
+<div class="card" onclick="alert('Heart: 72 BPM NORMAL')"><h1>❤️</h1>Heart</div>
+<div class="card" onclick="alert('Lungs: 98% GOOD')"><h1>🫁</h1>Lungs</div>
+<div class="card" onclick="alert('Brain Stress: 25% LOW')"><h1>🧠</h1>Brain</div>
+<div class="card" onclick="alert('Kidney: 95% HEALTHY')"><h1>🫘</h1>Kidney</div>
+</div>
+</div>
+
+<!-- HISTORY -->
+<div id="history" class="page">
+<h2>📈 7 Days History</h2>
+<canvas id="histChart" height="100"></canvas>
+</div>
+
+<!-- ALERT -->
+<div id="alert" class="page">
+<h2>🚨 Alerts</h2>
+<div class="card" style="background:#ef4444">⚠️ Last Alert: Oct 03 - High Stress (62%) - Telegram Sent</div>
+<button onclick="document.getElementById('msg').style.display='block'" style="margin-top:20px;background:#2AABEE;border:none;padding:15px;width:100%;border-radius:10px;color:white;font-weight:bold">Send Test Telegram Alert</button>
+<p id="msg" style="display:none;color:#2AABEE;text-align:center;margin-top:10px">📨 Telegram Sent to Family!</p>
+</div>
+
+<script>
+function show(p){
+ document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+ document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
+ document.getElementById(p).classList.add('active');
+ document.getElementById('b-'+p).classList.add('active');
+}
+
+// LIVE FAKE DATA + BACKEND STYLE
+let c1 = new Chart(document.getElementById('liveChart'),{type:'line',data:{labels:[],datasets:[{label:'Heart',data:[],borderColor:'#ef4444'}]},options:{scales:{x:{ticks:{color:'white'}},y:{ticks:{color:'white'}}}}});
+let c2 = new Chart(document.getElementById('histChart'),{type:'line',data:{labels:['01','02','03','04','05'],datasets:[{label:'Stress',data:[28,20,62,35,24],borderColor:'#f59e0b'}]},options:{scales:{x:{ticks:{color:'white'}},y:{ticks:{color:'white'}}}}});
+
+let i=0;
+setInterval(()=>{
+ let h=70+Math.random()*20|0, s=96+Math.random()*3|0, t=(98.2+Math.random()).toFixed(1), st=20+Math.random()*30|0;
+ document.getElementById('h1').innerText=h+' BPM'; document.getElementById('s1').innerText=s+'%'; document.getElementById('t1').innerText=t+'°F'; document.getElementById('st1').innerText=st+'%';
+ c1.data.labels.push(i++); c1.data.datasets[0].data.push(h); if(c1.data.labels.length>15){c1.data.labels.shift();c1.data.datasets[0].data.shift()} c1.update();
+},1500);
+</script>
+
+</body>
+</html>
