@@ -96,13 +96,54 @@ const myChart = new Chart(ctx, {
 });
 
 // LIVE UPDATE
+// LIVE SENSOR VARIABLES
+let liveBPM = null, liveSPO2 = null;
+let isLive = false;
+
+let connectBtn = document.createElement('button');
+connectBtn.innerHTML = '🫀 Connect Arduino (Live)';
+connectBtn.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;padding:14px 22px;background:#10b981;color:white;border:none;border-radius:12px;cursor:pointer;font-weight:bold;box-shadow:0 4px 12px rgba(0,0,0,0.4)';
+document.body.appendChild(connectBtn);
+
+connectBtn.onclick = async () => {
+  try{
+    const port = await navigator.serial.requestPort();
+    await port.open({ baudRate: 9600 });
+    isLive = true;
+    connectBtn.innerHTML = '● LIVE - Finger pettu';
+    connectBtn.style.background = '#e11d48';
+
+    const decoder = new TextDecoderStream();
+    port.readable.pipeTo(decoder.writable);
+    const reader = decoder.readable.getReader();
+    let buf="";
+    while(true){
+      const {value,done} = await reader.read();
+      if(done) break;
+      buf+=value;
+      let lines=buf.split("\n"); buf=lines.pop();
+      for(let line of lines){
+        if(line.includes('"bpm"')){
+          try{
+            let d=JSON.parse(line);
+            liveBPM = d.bpm;
+            liveSPO2 = d.spo2;
+            console.log("LIVE:",d);
+          }catch(e){}
+        }
+      }
+    }
+  }catch(e){ alert("Chrome lo open chey! Error: "+e); }
+};
+
+// LIVE UPDATE - Random + Real mix
 setInterval(() => {
-  let h = 70 + Math.floor(Math.random() * 18);
-  let s = 96 + Math.floor(Math.random() * 3);
+  let h = liveBPM!== null? liveBPM : 70 + Math.floor(Math.random() * 18);
+  let s = liveSPO2!== null? liveSPO2 : 96 + Math.floor(Math.random() * 3);
   let t = (98.2 + Math.random()*0.8).toFixed(1);
   let st = 15 + Math.floor(Math.random() * 25);
 
-  document.getElementById('heart').innerText = h + ' BPM';
+  document.getElementById('heart').innerText = h + ' BPM' + (isLive? ' ●LIVE' : '');
   document.getElementById('spo2').innerText = s + ' %';
   document.getElementById('temp').innerText = t + ' °F';
   document.getElementById('stress').innerText = st + ' %';
