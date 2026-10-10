@@ -1,10 +1,20 @@
 <body style="background:#020617;color:white;font-family:sans-serif;text-align:center;padding:20px">
-<a href="home.html">← Back</a>
+<a href="dashboar.html">← Back to Dashboard</a>
 <h2>🚨 Emergency Alerts</h2>
-<div style="background:#ef4444;padding:20px;border-radius:15px;margin-top:20px">
-<p>Last Alert: High Stress Detected</p>
-<p>Time: Today 8:32 PM</p>
-<p>Action: Telegram Sent to Family</p>
-</div>
-<button onclick="alert('📨 Telegram Sent!')" style="margin-top:20px;background:#2AABEE;border:none;padding:15px;border-radius:10px;color:white">Send Test Telegram</button>
+<div id="alertBox" style="padding:20px;border-radius:15px;margin-top:20px"></div>
+<button onclick="sendTelegram()" style="margin-top:20px;background:#2AABEE;border:none;padding:15px;border-radius:10px;color:white;cursor:pointer">Send Test Telegram</button>
+
+<script>
+let bpm = localStorage.getItem('live_bpm') || 84;
+let stress = localStorage.getItem('live_stress') || 15;
+let box = document.getElementById('alertBox');
+if(stress > 80 || bpm > 110){
+  box.style.background = "#ef4444";
+  box.innerHTML = `<p>Last Alert: High Stress Detected (${stress}%)</p><p>Time: ${new Date().toLocaleTimeString()}</p><p>Action: Telegram Sent to Family</p>`;
+} else {
+  box.style.background = "#22c55e";
+  box.innerHTML = `<p>✅ No Emergency - You are Healthy!</p><p>BPM: ${bpm} | Stress: ${stress}%</p><p>Time: ${new Date().toLocaleTimeString()}</p>`;
+}
+function sendTelegram(){ alert('📨 Telegram Sent! - Demo'); }
+</script>
 </body>
