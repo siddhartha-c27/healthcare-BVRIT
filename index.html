@@ -5,6 +5,7 @@
 body{background:#020617;color:white;font-family:sans-serif;text-align:center;padding:20px;background: url(https://www.shutterstock.com/image-photo/medical-worker-plus-icon-represents-260nw-2474393153.jpg); background-size: cover; }
 a{color:white;text-decoration:none;background:#1e293b;padding:12px 20px;border-radius:10px;margin:10px;display:inline-block}
 </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 <h1>🏥 Healthcare</h1>
@@ -13,5 +14,50 @@ a{color:white;text-decoration:none;background:#1e293b;padding:12px 20px;border-r
 <a href="organ.html">🫀 Body Organs</a>
 <a href="history.html">📈 History Graph</a>
 <a href="alert.html">🚨 Alerts & Telegram</a>
+  <!-- LIVE SENSOR PATCH - Add before </body> -->
+<div id="liveBadge" style="display:none;position:fixed;top:20px;right:20px;background:#10b981;color:white;padding:10px 16px;border-radius:20px;font-weight:bold;z-index:9999">● LIVE SENSOR</div>
+<script>
+const connectBtn = document.createElement('button');
+connectBtn.innerHTML = '🫀 Connect Arduino (Live Data)';
+connectBtn.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;padding:14px 22px;background:#2563eb;color:white;border:none;border-radius:12px;cursor:pointer;font-weight:bold;box-shadow:0 4px 12px rgba(0,0,0,0.3)';
+document.body.appendChild(connectBtn);
+
+connectBtn.onclick = async () => {
+  const port = await navigator.serial.requestPort();
+  await port.open({ baudRate: 9600 });
+  document.getElementById('liveBadge').style.display='block';
+  connectBtn.innerText='● Connected - Finger pettu';
+
+  const decoder = new TextDecoderStream();
+  port.readable.pipeTo(decoder.writable);
+  const reader = decoder.readable.getReader();
+  let buf="";
+  while(true){
+    const {value,done} = await reader.read();
+    if(done) break;
+    buf+=value;
+    let lines=buf.split("\n"); buf=lines.pop();
+    for(let line of lines){
+      if(!line.includes('"bpm"')) continue;
+      try{
+        let d=JSON.parse(line);
+        // Nee existing dashboard lo unna values ni replace
+        // Try to find all BPM/O2 elements and update
+        document.querySelectorAll('*').forEach(el=>{
+          if(el.innerText && el.innerText.match(/^\d{2,3}\s*BPM$/)) el.innerText = d.bpm+" BPM";
+          if(el.innerText && el.innerText.match(/^\d{2,3}%$/)) el.innerText = d.spo2+"%";
+        });
+        // Specific IDs unte
+        let bpmEl = document.getElementById('bpm')||document.getElementById('heartRate')||document.querySelector('[data-bpm]');
+        let o2El = document.getElementById('o2')||document.getElementById('spo2')||document.querySelector('[data-o2]');
+        if(bpmEl) bpmEl.innerText=d.bpm;
+        if(o2El) o2El.innerText=d.spo2+"%";
+        
+        console.log("LIVE:",d);
+      }catch(e){}
+    }
+  }
+};
+</script>
 </body>
 </html>
